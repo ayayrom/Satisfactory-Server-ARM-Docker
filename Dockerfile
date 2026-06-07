@@ -1,55 +1,40 @@
-# Use Ubuntu 22.04 as base
-FROM ubuntu:22.04
+#builder for the image
+FROM debian:bookworm AS builder
 SHELL ["/bin/bash", "-c"]
 
-# Install cURL, Python 3, sudo, unbuffer and the package for "add-apt-repository"
-RUN apt update && apt install -y curl python3 sudo expect-dev software-properties-common
+RUN apt update && DEBIAN_FRONTEND=noninteractive apt install -y git curl python3 sudo cmake ninja-build pkg-config clang llvm lld nasm libsdl2-dev libepoxy-dev libssl-dev python3-dev libstdc++-12-dev squashfs-tools squashfuse qtbase5-dev qtdeclarative5-dev qt5-qmake
 
-# Fex build dependencies
-RUN apt install -y squashfs-tools squashfuse git python-setuptools pkgconf clang
-RUN apt install -y binfmt-support systemd cmake ninja-build software-properties-common
-RUN apt install -y libncurses6 libncurses5 libtinfo5 libtinfo6 libncurses-dev
-RUN apt install -y libsdl2-dev libepoxy-dev libssl-dev llvm lld
-RUN apt install -y qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools libqt5core5a libqt5gui5 libqt5widgets5 qtdeclarative5-dev qml-module-qtquick2 qml-module-qtquick-controls2 qml-module-qtquick-window2 nasm
+WORKDIR /tmp
+# pinned to 2605 for stability
+RUN git clone --recurse-submodules --branch FEX-2605 --depth 1 https://github.com/FEX-Emu/FEX.git
 
-# compiling FEX
-RUN add-apt-repository -y ppa:fex-emu/fex
-RUN git clone --recurse-submodules https://github.com/FEX-Emu/FEX.git
-WORKDIR FEX 
-# Reverting to an older commit due to FEXEmu updates breaking the build process
-RUN git checkout 0072b289bbf9f59b89c117158118375397532aad
-RUN git submodule update --init --recursive
-# ###
-RUN sed -i 's@USE_LEGACY_BINFMTMISC "Uses legacy method of setting up binfmt_misc" FALSE@USE_LEGACY_BINFMTMISC "Uses legacy method of setting up binfmt_misc" TRUE@' ./CMakeLists.txt
-RUN mkdir Build
-WORKDIR Build
-RUN CC=clang CXX=clang++ cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DUSE_LINKER=lld -DENABLE_LTO=True -DBUILD_TESTS=False -DENABLE_ASSERTIONS=False -G Ninja ..
-RUN ninja
-RUN ninja install
-RUN ninja binfmt_misc
-#RUN ninja binfmt_misc_64
+WORKDIR /tmp/FEX
+#CMAKE exclusive to ampere CPUs
+RUN mkdir Build && cd Build && \
+        CC=clang CXX=clang++ cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DUSE_LINKER=lld -DENABLE_LTO=True -DBUILD_TESTS=False -DENABLE_ASSERTIONS=False \
+        -DCMAKE_C_FLAGS="-mcpu=neoverse-n1 -O3 -fno-math-errno" -DCMAKE_CXX_FLAGS="-mcpu=neoverse-n1 -O3 -fno-math-errno" -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=True \
+        -G Ninja .. && ninja && ninja install
+# might downgrade to -O2 if enough issues come up
 
-# Create user steam
+#actual image properties
+FROM debian:bookworm-slim
+SHELL ["/bin/bash", "-c"]
+
+RUN apt update && DEBIAN_FRONTEND=noninteractive apt install -y curl python3 sudo locales unzip libsdl2-2.0-0 libepoxy0 libssl3 libstdc++6 squashfs-tools squashfuse libqt5widgets5 libqt5qml5 gosu jq && rm -rf /var/lib/apt/lists/*
+
+RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
+    locale-gen en_US.UTF-8
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US:en
+ENV LC_ALL=en_US.UTF-8
+
+COPY --from=builder /usr/bin/FEX* /usr/bin/
+
 RUN useradd -m steam
+# USER steam
 
-# InstallL FEX root FS
-RUN sudo -u steam bash -c "unbuffer FEXRootFSFetcher -y -x"
-
-# Change user to steam
-USER steam
-
-# Go to /home/steam/Steam
 WORKDIR /home/steam/Steam
+RUN curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf - && chown -R steam:steam /home/steam
 
-# Download and extract SteamCMD
-RUN curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -
-
-# Copy init-server.sh to container (changed to make the runscript modifieable)
-#COPY --chmod=755 --chown=steam:steam ./init-server.sh /home/steam/init-server.sh
-#RUN chmod +x /home/steam/init-server.sh
-
-# Default working directory
 WORKDIR /home/steam
-
-# Use bash as entrypoint so we can pass custom scripts from host
 ENTRYPOINT ["/bin/bash"]
