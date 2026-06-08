@@ -27,7 +27,6 @@ services:
       - './satisfactory-data:/satisfactory'
       - './config:/home/steam/.config/Epic'
       - './fex-data:/home/steam/.fex-emu'
-      - './init-server.sh:/home/steam/init-server.sh:ro'
     stdin_open: true
     tty: true
     entrypoint: /home/steam/init-server.sh
