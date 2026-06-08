@@ -1,5 +1,5 @@
 # Satisfactory Server on ARM64 using FEX
-Thanks to [sa-shiro/Satisfactory-Dedicated-Server-ARM64-Docker](https://github.com/ayayrom/Satisfactory-Dedicated-Server-ARM64-Docker), they inspired this project. It is also an improved fork of their project.
+Thanks to [sa-shiro/Satisfactory-Dedicated-Server-ARM64-Docker](https://github.com/sa-shiro/Satisfactory-Dedicated-Server-ARM64-Docker), they inspired this project. It is also an improved fork of their project.
 
 ---
 
