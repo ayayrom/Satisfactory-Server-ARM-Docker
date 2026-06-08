@@ -7,13 +7,26 @@ services:
       - '7777:7777/tcp'
       - '8888:8888/tcp'
     restart: 'unless-stopped'
+    # change if you don't want satisfactory hogging compute
+    ulimits:
+      nice:
+        soft: -20
+        hard: -20
     environment:
-      - EXTRA_PARAMS=-log -unattended -ini:Engine:[HTTPServer.Listeners]:DefaultBindAddress=any
-      - ALWAYS_UPDATE_ON_START=true
+      ALWAYS_UPDATE_ON_START: ${ALWAYS_UPDATE_ON_START:-true}
+      EXPERIMENTAL_BRANCH: ${EXPERIMENTAL_BRANCH:-false}
+      PUID: ${PUID:-1001}
+      PGID: ${PGID:-1001}
+      CPU_CORE_COUNT: ${CPU_CORE_COUNT:-4}
+      SERVER_NICENESS: ${SERVER_NICENESS:-0}
+      EXTRA_PARAMS: >
+        -log
+        -unattended
+        -ini:Engine:[HTTPServer.Listeners]:DefaultBindAddress=any
     volumes:
-      - './satisfactory:/satisfactory'
+      - './satisfactory-data:/satisfactory'
       - './config:/home/steam/.config/Epic'
-      - ./init-server.sh:/home/steam/init-server.sh:rw
+      - './fex-data:/home/steam/.fex-emu'
     stdin_open: true
     tty: true
     entrypoint: /home/steam/init-server.sh
