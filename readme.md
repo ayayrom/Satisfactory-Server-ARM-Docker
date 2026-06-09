@@ -5,41 +5,52 @@ Thanks to [sa-shiro/Satisfactory-Dedicated-Server-ARM64-Docker](https://github.c
 
 ## Getting Started
 
-1. **Download or Clone Repository**:  
-   You can download this repository by either the code button above or using  
-   `git clone https://github.com/ayayrom/Satisfactory-Server-ARM-Docker.git`
-   Next, you'll want to cd into it using this: `cd Satisfactory-Server-ARM-Docker`
+1. **Make directory**:  
+   by doing this: `mkdir satisfactory-server && cd satisfactory-server`
 
-2. **Environment Setup**:
-   Before building, create your environment configuration file by copying the example by doing `cp .env.example .env` and edit the values as you wish.
+2. **Docker Compose setup**:
+   Paste this in the directory's docker-compose.yml:
+   ```
+   services:
+    satisfactory-server:
+      # change "latest" to "generic" for CPUs not Oracle Cloud's Ampere
+      image: 'ayayrom/satisfactory-arm64:latest'
+      container_name: 'satisfactory-server'
+      ports:
+        - '7777:7777/udp'
+        - '7777:7777/tcp'
+        - '8888:8888/tcp'
+      restart: 'unless-stopped'
+      # change if you don't want satisfactory hogging compute
+      ulimits:
+        nice:
+          soft: -20
+          hard: -20
+      environment:
+        ALWAYS_UPDATE_ON_START: ${ALWAYS_UPDATE_ON_START:-true}
+        EXPERIMENTAL_BRANCH: ${EXPERIMENTAL_BRANCH:-false}
+        PUID: ${PUID:-1001}
+        PGID: ${PGID:-1001}
+        CPU_CORE_COUNT: ${CPU_CORE_COUNT:-4}
+        SERVER_NICENESS: ${SERVER_NICENESS:-0}
+        EXTRA_PARAMS: >
+          -log
+          -unattended
+          -ini:Engine:[HTTPServer.Listeners]:DefaultBindAddress=any
+      volumes:
+        - './satisfactory-data:/satisfactory'
+        - './config:/home/steam/.config/Epic'
+        - './fex-data:/home/steam/.fex-emu'
+      stdin_open: true
+      tty: true
+      entrypoint: /home/steam/init-server.sh
+      ```
 
-3. **Build the Docker Image**:  
-   This section will take about ~15 minutes to compile from source. If it goes beyond that, check to make sure the compilation isn't stuck.  
-   Run the command **IF YOU ARE USING ORACLE CLOUD'S AMPERE**:
-   ```
-   sudo docker build -t satisfactory-arm64 -f Dockerfile .
-   ```
-   Run the command **IF YOU ARE USING SOMETHING ELSE**:
-   ```
-   sudo docker build -t satisfactory-arm64 -f Dockerfile.generic .
-   ```
-
-4. **Run the Docker Image**:
-   Before you run the docker image, do this: `sudo chmod +x init-server.sh`
-   To run the docker image, run the command:
-   ```
-   sudo docker compose up -d
-   ```
-   If you want to follow the logs after it is running, run the command:
-   ```
-   sudo docker compose logs -f
-   ```
-
-5. **Port Access and Forwarding**:  
-   On your router (or Oracle Cloud Security List), open the ports 7777 TCP/UDP and 8888 TCP. They are the default ports for a Satisfactory server.
+3. **Port Access and Forwarding**:  
+   On your router (or Oracle Cloud Security List), open the ports 7777 TCP/UDP and 8888 TCP (or respective to your other port choosing). They are the default ports for a Satisfactory server.
 
    DOCKER WILL BYPASS UFW, so you will not need for any firewall rules.
 
-Once you finish step 5, congrats! The server is now ready to be used. 
+Once you finish step 3, congrats! The server is now ready to be used. You can start the server up by doing `sudo docker compose up -d`
 
 [FEX](https://github.com/FEX-Emu/FEX) hella goated, yall should check it out

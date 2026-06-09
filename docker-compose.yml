@@ -1,6 +1,7 @@
 services:
   satisfactory-server:
-    image: 'satisfactory-arm64'
+    # change "latest" to "generic" for CPUs not Oracle Cloud's Ampere
+    image: 'ayayrom/satisfactory-arm64:latest'
     container_name: 'satisfactory-server'
     ports:
       - '7777:7777/udp'
