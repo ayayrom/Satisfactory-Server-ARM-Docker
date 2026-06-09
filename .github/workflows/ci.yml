@@ -122,7 +122,7 @@ jobs:
           platforms: linux/arm64
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/satisfactory-arm64:${{ steps.var.outputs.tag }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/satisfactory-arm64:${{ github.sha }}-${{ steps.var.outputs.tag }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/satisfactory-arm64:${{ steps.vars.outputs.tag }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/satisfactory-arm64:${{ github.sha }}-${{ steps.vars.outputs.tag }}
           cache-from: type=gha,scope=satisfactory-${{ matrix.dockerfile }}
           cache-to: type=gha,scope=satisfactory-${{ matrix.dockerfile }},mode=max
