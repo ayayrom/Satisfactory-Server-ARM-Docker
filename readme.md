@@ -54,6 +54,6 @@ services:
 
    DOCKER WILL BYPASS UFW, so you will not need for any firewall rules.
 
-Once you finish step 3, congrats! The server is now ready to be used. You can start the server up by doing `sudo docker compose up -d`
+Once you finish step 3, congrats! The server is now ready to be built. You can build the server up by doing `sudo docker compose up -d --build`.
 
 [FEX](https://github.com/FEX-Emu/FEX) hella goated, yall should check it out
