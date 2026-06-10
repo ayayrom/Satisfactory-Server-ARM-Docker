@@ -1,11 +1,8 @@
 services:
   satisfactory-server:
-    # change "latest" to "generic" for CPUs not Oracle Cloud's Ampere
-    # comment "image" out if you want to do a local build instead, and uncomment "build"
-    image: 'ayayrom/satisfactory-arm64:latest'
-    # build:
-    #   context: https://github.com/ayayrom/Satisfactory-Server-ARM-Docker.git#main
-    #   dockerfile: Dockerfile
+    build:
+      context: https://github.com/ayayrom/Satisfactory-Server-ARM-Docker.git#main
+      dockerfile: Dockerfile
 
     container_name: 'satisfactory-server'
     ports:
