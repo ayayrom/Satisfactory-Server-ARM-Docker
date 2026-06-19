@@ -49,11 +49,11 @@ services:
     entrypoint: /home/steam/init-server.sh
 ```
 
-1. **Port Access and Forwarding**:  
+3. **Port Access and Forwarding**:  
    On your router (or Oracle Cloud Security List), open the ports 7777 TCP/UDP and 8888 TCP (or respective to your other port choosing). They are the default ports for a Satisfactory server.
 
    DOCKER WILL BYPASS UFW, so you will not need for any firewall rules.
 
-Once you finish step 3, congrats! The server is now ready to be built. You can build the server up by doing `sudo docker compose up -d --build`.
+Once you finish step 3, congrats! The server is now ready to be built. You can build the server up by doing `sudo docker compose up -d --build`. It can take a while (it took around 10ish minutes for me), so you can leave it and come back and the server will be up and running.
 
 [FEX](https://github.com/FEX-Emu/FEX) hella goated, yall should check it out
